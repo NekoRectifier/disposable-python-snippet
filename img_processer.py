@@ -42,10 +42,16 @@ def process_dir(_dir):
             # new_img.show()
             new_img.save(os.path.join(_dir, file[:-4] + '.png'))
 
+def del_other_files(_dir):
+    for file in os.listdir(_dir):
+        if file.endswith('.jpg'):
+            os.remove(os.path.join(_dir, file))
+
 
 if __name__ == "__main__":
     for root, dirs, files in os.walk(DEST_DIR):
         for dir in dirs:
             _path = os.path.join(root, dir)
             print("Processing Dir: ", _path)
-            process_dir(_path)
+            # process_dir(_path)
+            del_other_files(_path)
