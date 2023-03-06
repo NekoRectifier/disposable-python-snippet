@@ -5,7 +5,7 @@ from shutil import copyfile
 DEST_PATH = "F:\\Documents\\Pictures\\AllTest"
 
 GROUP_SIZE = 26
-GROUP_NUM = 1
+GROUP_NUM = 11
 
 img_list = []
 
@@ -27,7 +27,11 @@ for index in range(1, GROUP_NUM + 1):
     
     for file_i in range(0, GROUP_SIZE):
         try:
-            copyfile(os.path.join(DEST_PATH, img_list[file_i * index]), os.path.join(DEST_PATH, str(index) + '/' + str(file_i) + ".jpg"))
+            # print("Copying...", file_i * index)
+            copyfile(
+                os.path.join(
+                    DEST_PATH, 
+                    img_list[(file_i + int(index - 1 * GROUP_SIZE))]), os.path.join(DEST_PATH, str(index) + '/' + str(file_i) + ".jpg"))
         except IOError as e:
             print("failed \n" + str(e))
             exit(1)
