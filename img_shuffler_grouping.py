@@ -1,3 +1,9 @@
+# shuffles image in a folder and regroups them into different folders
+# DEST_DIR: the path of images that needs to be processed
+# GROUP_SIZE: how many pic in ONE group
+# GROUP_NUM: group limit
+# DO NOT MAKE ESTIMATED IMAGE NUM MORE THAN ACTUAL IMAGE NUM
+
 import os
 import random
 from shutil import copyfile
