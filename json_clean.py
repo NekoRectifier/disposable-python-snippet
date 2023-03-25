@@ -15,10 +15,10 @@ def main(target):
         else:
             raise ValueError
     except BaseException:
-        print("Occured")
+        print("Error Occured")
 
 
-def removeUnwantedKeys(abs_path):
+def removeUnwantedKeys(abs_path, output_path):
     with open(abs_path, "r", encoding="utf-8") as file_handle:
         json_data = json.load(file_handle)
 
@@ -42,12 +42,16 @@ def removeUnwantedKeys(abs_path):
                 point[0] = int(point[0])
                 point[1] = int(point[1])
 
+        with open(output_path, 'w', newline='\n') as f:
+            f.write(json.dumps(json_data, indent=4, sort_keys=True))
+
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         print("needs a path arg points to dir of jsons")
     elif len(sys.argv) == 2:
         if os.path.exists(sys.argv[1]):
+            print("WARNING: This program modifies json file itself")
             print("Processing...")
             main(sys.argv[1])
         else:
