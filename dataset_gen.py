@@ -19,7 +19,6 @@ val_group = 0
 dest_path = ""
 
 json_switch = 0
-
 frame_number = "000016"
 
 
@@ -144,7 +143,7 @@ def main(path: str, ratio: float, dest):
 
 if __name__ == "__main__":
     if os.path.exists('./final'):
-        os.removedirs('./final')
+        shutil.rmtree('./final')
 
     if len(sys.argv) > 3:
         if type(sys.argv[1]) == str and type(sys.argv[2]) == str and type(sys.argv[3]) == str:
@@ -152,8 +151,6 @@ if __name__ == "__main__":
             main(sys.argv[1], float(sys.argv[2]), sys.argv[3])
     else:
         print(
-            "ERROR Wrong Format!\nformat:\n    python dataset_gen.py [root_raw_folder] [train/all ratio] [dataset_output_dir]")
+            "ERROR Wrong Exec Format!\nformat:\n    python dataset_gen.py [root_raw_folder] [train/all ratio] [dataset_output_dir]\
+                \n\t[root_raw_folder] 是各组以数字命名为子文件夹的根文件夹\t[train/all ratio]是训练/全部图片的比例\t[dataset_output_dir]是输出路径")
 
-# 数据集标注标准
-# 使用 img_shuffle_grouping.py 生成数据
-# 回收的数据应按人分别建立文件夹并分别以单数字（如“1”，且从0开始）顺序命名，文件夹内应为json和规定像素大小的png文件，且各类文件名从0开始命名。
