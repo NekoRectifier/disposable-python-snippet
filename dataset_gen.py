@@ -2,6 +2,7 @@ import os
 import sys
 import json_clean
 import shutil
+from rename import rename
 
 from cityscapesscripts.preparation.json2instanceImg import json2instanceImg
 from cityscapesscripts.preparation.json2labelImg import json2labelImg
@@ -46,7 +47,8 @@ def structureCreate(dest_path: str, train: int, val: int):
 
 def generate(path: str, files: list, is_Val: bool):
     print("Generating sub dataset from folder '%s'" % path)
-    folder_name = city_distribution[int(path[-1:]) - 1]
+    folder_name = city_distribution[int(path[-1:])]
+    print(int(path[-1:]))
     print(folder_name)
 
     # if json_switch == 0:
@@ -60,11 +62,11 @@ def generate(path: str, files: list, is_Val: bool):
                                  folder_name, folder_name + '_' +
                                  str(index).rjust(6, '0') + '_' + frame_number) + "_gtFine_"
 
-            # shutil.copy(
-            #     _json_path,
-            #     _general_name + 'polygons.json'
-            # )
-            json_clean.removeUnwantedKeys(_json_path, _general_name + 'polygons.json')
+            shutil.copy(
+                _json_path,
+                _general_name + 'polygons.json'
+            )
+            # json_clean.removeUnwantedKeysTo(_json_path, _general_name + 'polygons.json')
 
             shutil.copy(
                 join(path, str(index) + ".png"),
@@ -87,11 +89,11 @@ def generate(path: str, files: list, is_Val: bool):
             _general_name = join(dest_path, "gtFine", "val", folder_name,
                                  folder_name + '_' + str(index).rjust(6, '0') + '_' + frame_number) + "_gtFine_"
 
-            # shutil.copy(
-            #     _json_path,
-            #     _general_name + 'polygons.json'
-            # )
-            json_clean.removeUnwantedKeys(_json_path, _general_name + 'polygons.json')
+            shutil.copy(
+                _json_path,
+                _general_name + 'polygons.json'
+            )
+            # json_clean.removeUnwantedKeysTo(_json_path, _general_name + 'polygons.json')
 
             shutil.copy(
                 join(path, str(index) + ".png"),
@@ -109,18 +111,40 @@ def generate(path: str, files: list, is_Val: bool):
                 _general_name + 'labelIds.png'
             )
 
+def preProcessRawFolders(path):
+    _index_json = 0
+    _index_img = 0
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            if str(file).endswith('.json'):
+                shutil.copy(join(root, file), join(path, "all_raw", str(_index_json) + ".json"))
+                _index_json = _index_json + 1
+            elif str(file).endswith('.png'):
+                shutil.copy(join(root, file), join(path, "all_raw", str(_index_img) + ".png"))
+                _index_img = _index_img + 1
+
 
 def main(path: str, ratio: float, dest):
     global train_group, val_group
     val_list = []
 
+    # preProcessRawFolders(path=path)
+
+    if os.path.exists(dest):
+        shutil.rmtree(dest)
+
     if not os.path.exists(dest):
         os.mkdir(dest)
-
+    
     for root, dirs, files in os.walk(path, topdown=True):
         # folders name should be numberic and ordered
+
+        for dir in dirs:
+            rename(join(root, dir))
+
         if root == path:
-            if not os.path.exists(len(dirs) - 1):
+            # print(len(dirs) - 1)
+            if not os.path.exists(os.path.join(root, str(len(dirs) - 1))):
                 # TODO may have problem here 
                 print("Grouping folders number is NOT correspond to its length")
                 raise FileExistsError
@@ -142,9 +166,6 @@ def main(path: str, ratio: float, dest):
 
 
 if __name__ == "__main__":
-    if os.path.exists('./final'):
-        shutil.rmtree('./final')
-
     if len(sys.argv) > 3:
         if type(sys.argv[1]) == str and type(sys.argv[2]) == str and type(sys.argv[3]) == str:
             dest_path = sys.argv[3]
