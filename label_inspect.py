@@ -15,16 +15,13 @@ def main(path):
                     with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
                         json_data = json.load(f)
 
-                        for object in json_data['shapes']:
+                        for object in json_data['objects']: # suitable for jsons processed with json_clean.py
                             if object['label'] not in item_list:
 
                                 _str = "Label problem found: %s\nIn %s\n" % (
                                     object['label'], root + '\\' + file)
                                 print(_str)
                                 output_f.write(_str)
-                    f.close()
-
-    output_f.close()
 
 if __name__ == "__main__":
     if (len(sys.argv) > 1 and len(sys.argv) < 3):

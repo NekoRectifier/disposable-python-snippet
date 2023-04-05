@@ -3,22 +3,30 @@ import json
 import sys
 
 def main(target):
+
+    print(type(target))
+    print(type("str"))
+
     try:
-        if target == type(str):
-            for file in os.walk(target):
-                if str(file).endswith(".json"):
-                    removeUnwantedKeys(os.path.join(target, file))
-        elif target == type(list):
-            for path in list:
+        if type(target) == type("sad"):
+            for root, dirs, files in os.walk(target):
+                for file in files:
+                    if str(file).endswith(".json"):
+                        removeUnwantedKeys(os.path.join(root, file))
+        elif type(target) == type(list):
+            for path in target:
                 if os.path.exists(path=path) and str(path).endswith(".json"):
                     removeUnwantedKeys(path)
+                else:
+                    print("list path error")
+                    raise FileNotFoundError
         else:
             raise ValueError
-    except BaseException:
-        print("Error Occured")
+    finally:
+        pass
 
 
-def removeUnwantedKeys(abs_path, output_path):
+def removeUnwantedKeys(abs_path):
     with open(abs_path, "r", encoding="utf-8") as file_handle:
         json_data = json.load(file_handle)
 
@@ -41,9 +49,9 @@ def removeUnwantedKeys(abs_path, output_path):
             for point in obj['polygon']:
                 point[0] = int(point[0])
                 point[1] = int(point[1])
-
-        with open(output_path, 'w', newline='\n') as f:
-            f.write(json.dumps(json_data, indent=4, sort_keys=True))
+        
+    with open(abs_path, 'w+', newline='\n') as f:
+        f.write(json.dumps(json_data, indent=4, sort_keys=True))
 
 
 if __name__ == "__main__":
