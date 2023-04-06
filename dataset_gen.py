@@ -22,6 +22,8 @@ dest_path = ""
 json_switch = 0
 frame_number = "000016"
 
+data = {}
+
 
 def structureCreate(dest_path: str, train: int, val: int):
     # build basic cityscape like folder structure 
@@ -45,18 +47,17 @@ def structureCreate(dest_path: str, train: int, val: int):
     return val_list
 
 
-def generate(path: str, files: list, is_Val: bool):
+def generate(path: str, files: list):
     print("Generating sub dataset from folder '%s'" % path)
-    folder_name = city_distribution[int(path[-1:])]
-    print(int(path[-1:]))
-    print(folder_name)
+   
+    index = int(path[path.rfind('\\') + 1:])
 
-    # if json_switch == 0:
-    #     json_clean.main(list)
+    if index < train_group:
+        print("designated to train")
 
-    # json process
-    if not is_Val:
-        for index, file in enumerate(files):
+        folder_name = city_distribution[index]
+
+        for index in range(0, int(len(files)/2)):
             _json_path = join(path, str(index) + ".json")
             _general_name = join(dest_path, "gtFine", "train",
                                  folder_name, folder_name + '_' +
@@ -71,7 +72,7 @@ def generate(path: str, files: list, is_Val: bool):
             shutil.copy(
                 join(path, str(index) + ".png"),
                 join(dest_path, "leftImg8bit", "train", folder_name,
-                     folder_name + str(index).rjust(6, '0') + '_' + frame_number) + '_leftImg8bit.png'
+                     folder_name + '_' + str(index).rjust(6, '0') + '_' + frame_number) + '_leftImg8bit.png'
             )
 
             json2instanceImg(
@@ -84,7 +85,13 @@ def generate(path: str, files: list, is_Val: bool):
                 _general_name + 'labelIds.png'
             )
     else:
-        for index, file in enumerate(files):
+        print("designated to val")
+
+        print(-(index-train_group + 1))
+
+        folder_name = city_distribution[-(index-train_group + 1)]
+
+        for index in range(0, int(len(files)/2)):
             _json_path = join(path, str(index) + ".json")
             _general_name = join(dest_path, "gtFine", "val", folder_name,
                                  folder_name + '_' + str(index).rjust(6, '0') + '_' + frame_number) + "_gtFine_"
@@ -98,7 +105,7 @@ def generate(path: str, files: list, is_Val: bool):
             shutil.copy(
                 join(path, str(index) + ".png"),
                 join(dest_path, "leftImg8bit", "val", folder_name,
-                     folder_name + str(index).rjust(6, '0') + '_' + frame_number) + '_leftImg8bit.png'
+                     folder_name + '_' + str(index).rjust(6, '0') + '_' + frame_number) + '_leftImg8bit.png'
             )
 
             json2instanceImg(
@@ -110,6 +117,7 @@ def generate(path: str, files: list, is_Val: bool):
                 _json_path,
                 _general_name + 'labelIds.png'
             )
+        
 
 def preProcessRawFolders(path):
     _index_json = 0
@@ -141,6 +149,7 @@ def main(path: str, ratio: float, dest):
 
         for dir in dirs:
             rename(join(root, dir))
+            #TODO manully controled
 
         if root == path:
             # print(len(dirs) - 1)
@@ -154,15 +163,12 @@ def main(path: str, ratio: float, dest):
                 print("%d grouping folders detected" % (len(dirs)))
                 print(">> %d grouping for train;\n>> %d grouping for validate" % (train_group, val_group))
 
-                val_list = structureCreate(dest, train_group, val_group)
+                structureCreate(dest, train_group, val_group)
+                
                 # photos are randomized before labeling so there's no need for another randomize
         else:
             # sub-folder cycle
-            if root in val_list:
-                print("val detected")
-                generate(root, files, True)
-            else:
-                generate(root, files, False)
+            generate(root, files)
 
 
 if __name__ == "__main__":
