@@ -50,8 +50,10 @@ def generate(path: str, files: list):
 
     if str(path[path.rfind('\\') + 1:]).isdigit():
         index = int(path[path.rfind('\\') + 1:])
+        # Windows
     else:
         index = int(path[path.rfind('/') + 1:])
+        # Linux
     # original folder naming number
 
     if index < train_group:
@@ -101,6 +103,7 @@ def generate(path: str, files: list):
                 _json_path,
                 _general_name + 'polygons.json'
             )
+            
             # json_clean.removeUnwantedKeysTo(_json_path, _general_name + 'polygons.json')
 
             shutil.copy(
@@ -118,26 +121,10 @@ def generate(path: str, files: list):
                 _general_name + 'polygons.json',
                 _general_name + 'labelIds.png'
             )
-        
-
-def preProcessRawFolders(path):
-    _index_json = 0
-    _index_img = 0
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            if str(file).endswith('.json'):
-                shutil.copy(join(root, file), join(path, "all_raw", str(_index_json) + ".json"))
-                _index_json = _index_json + 1
-            elif str(file).endswith('.png'):
-                shutil.copy(join(root, file), join(path, "all_raw", str(_index_img) + ".png"))
-                _index_img = _index_img + 1
 
 
 def main(path: str, ratio: float, dest):
     global train_group, val_group
-
-    # preProcessRawFolders(path=path)
-    # unknown?
 
     if os.path.exists(dest):
         shutil.rmtree(dest)
@@ -180,6 +167,6 @@ if __name__ == "__main__":
             main(sys.argv[1], float(sys.argv[2]), sys.argv[3])
     else:
         print(
-            "ERROR Wrong Exec Format!\nformat:\n    python dataset_gen.py [root_raw_folder] [train/all ratio] [dataset_output_dir]\
+            "format:\n    python dataset_gen.py [root_raw_folder] [train/all ratio] [dataset_output_dir]\
                 \n\t[root_raw_folder] 是各组以数字命名为子文件夹的根文件夹\t[train/all ratio]是训练/全部图片的比例\t[dataset_output_dir]是输出路径")
 
