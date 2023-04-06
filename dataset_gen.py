@@ -47,8 +47,11 @@ def structureCreate(dest_path: str, train: int, val: int):
 
 def generate(path: str, files: list):
     print("Generating sub dataset from folder '%s'" % path)
-   
-    index = int(path[path.rfind('\\') + 1:])
+
+    if str(path[path.rfind('\\') + 1:]).isdigit():
+        index = int(path[path.rfind('\\') + 1:])
+    else:
+        index = int(path[path.rfind('/') + 1:])
     # original folder naming number
 
     if index < train_group:
