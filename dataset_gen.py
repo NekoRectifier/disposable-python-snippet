@@ -44,13 +44,12 @@ def structureCreate(dest_path: str, train: int, val: int):
         os.mkdir(join(dest_path, "gtFine", "val", _val))
         os.mkdir(join(dest_path, "leftImg8bit", "val", _val))
 
-    return val_list
-
 
 def generate(path: str, files: list):
     print("Generating sub dataset from folder '%s'" % path)
    
     index = int(path[path.rfind('\\') + 1:])
+    # original folder naming number
 
     if index < train_group:
         print("designated to train")
@@ -87,14 +86,13 @@ def generate(path: str, files: list):
     else:
         print("designated to val")
 
-        print(-(index-train_group + 1))
-
         folder_name = city_distribution[-(index-train_group + 1)]
 
         for index in range(0, int(len(files)/2)):
             _json_path = join(path, str(index) + ".json")
-            _general_name = join(dest_path, "gtFine", "val", folder_name,
-                                 folder_name + '_' + str(index).rjust(6, '0') + '_' + frame_number) + "_gtFine_"
+            _general_name = join(dest_path, "gtFine", "val",
+                                folder_name, folder_name + '_' + 
+                                str(index).rjust(6, '0') + '_' + frame_number) + "_gtFine_"
 
             shutil.copy(
                 _json_path,
@@ -109,12 +107,12 @@ def generate(path: str, files: list):
             )
 
             json2instanceImg(
-                _json_path,
+                _general_name + 'polygons.json',
                 _general_name + 'instanceIds.png'
             )
 
             json2labelImg(
-                _json_path,
+                _general_name + 'polygons.json',
                 _general_name + 'labelIds.png'
             )
         
@@ -134,12 +132,13 @@ def preProcessRawFolders(path):
 
 def main(path: str, ratio: float, dest):
     global train_group, val_group
-    val_list = []
 
     # preProcessRawFolders(path=path)
+    # unknown?
 
     if os.path.exists(dest):
         shutil.rmtree(dest)
+    # remove provious gernerated datasets
 
     if not os.path.exists(dest):
         os.mkdir(dest)
@@ -155,8 +154,8 @@ def main(path: str, ratio: float, dest):
             # print(len(dirs) - 1)
             if not os.path.exists(os.path.join(root, str(len(dirs) - 1))):
                 # TODO may have problem here 
-                print("Grouping folders number is NOT correspond to its length")
-                raise FileExistsError
+                print("Not enough folder while trying to correspond number with them.")
+                raise FileNotFoundError
             else:
                 train_group = int(len(dirs) * ratio)
                 val_group = len(dirs) - train_group
