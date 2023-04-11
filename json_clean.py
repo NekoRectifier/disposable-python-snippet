@@ -8,7 +8,7 @@ def main(target):
     print(type("str"))
 
     try:
-        if type(target) == type("sad"):
+        if type(target) == type("testStr"):
             for root, dirs, files in os.walk(target):
                 for file in files:
                     if str(file).endswith(".json"):

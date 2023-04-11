@@ -1,8 +1,7 @@
 import os
 import sys
-import json_clean
+import json
 import shutil
-from rename import rename
 
 from cityscapesscripts.preparation.json2instanceImg import json2instanceImg
 from cityscapesscripts.preparation.json2labelImg import json2labelImg
@@ -24,6 +23,53 @@ frame_number = "000016"
 
 data = {}
 
+""" 
+This function renames irregular numeric names due to manully removing unwanted labeling jsons and images into regular form.
+
+Args:
+folder_path -- receives a path that you designate
+"""
+def rename(folder_path):
+    # step 1: traverse all files in the folder
+    print(folder_path)
+    png_dict = {}
+    json_dict = {}
+    for file in os.listdir(folder_path):
+        # check if it is a png or json file
+        if file.endswith(".png"):
+            # get the number in the file name
+            num = int(os.path.splitext(file)[0])
+            # store the file name and number in a dictionary
+            png_dict[num] = file
+        elif file.endswith(".json"):
+            # get the number in the file name
+            num = int(os.path.splitext(file)[0])
+            # store the file name and number in a dictionary
+            json_dict[num] = file
+
+    # step 2: sort the dictionary by number
+    sorted_png_dict = dict(sorted(png_dict.items()))
+    sorted_json_dict = dict(sorted(json_dict.items()))
+
+    # step 3: rename the files
+    for i, key in enumerate(sorted_png_dict.keys()):
+        old_png_name = sorted_png_dict[key]
+        old_json_name = sorted_json_dict[key]
+        new_png_name = str(i) + os.path.splitext(old_png_name)[1]
+        new_json_name = str(i) + os.path.splitext(old_json_name)[1]
+        # rename the png and json files together
+        shutil.move(os.path.join(folder_path, old_png_name), os.path.join(folder_path, new_png_name))
+        shutil.move(os.path.join(folder_path, old_json_name), os.path.join(folder_path, new_json_name))
+
+
+"""
+Creates initial dataset folders structure
+
+Args:
+dest_path -- your target path for creating the dataset
+train -- numbers of folders that included in "train" group
+val -- numbers of folders that included in "val" group
+"""
 
 def structureCreate(dest_path: str, train: int, val: int):
     # build basic cityscape like folder structure 
@@ -43,6 +89,41 @@ def structureCreate(dest_path: str, train: int, val: int):
     for _val in val_list:
         os.mkdir(join(dest_path, "gtFine", "val", _val))
         os.mkdir(join(dest_path, "leftImg8bit", "val", _val))
+
+"""
+Check json keys one by one then modify and finally save it to designated path.
+
+Args:
+json_path -- path to original json file
+output_path -- path to 
+"""
+def jsonProcess(json_path, output_path):
+    print("Handling %s")
+    with open(json_path, "r", encoding="utf-8") as file_handle:
+        json_data = json.load(file_handle)
+
+        json_data.pop('imageData')
+        json_data.pop('flags')
+        json_data.pop('imagePath')
+        json_data.pop('version')
+
+        json_data['imgWidth'] = json_data.pop('imageWidth')
+        json_data['imgHeight'] = json_data.pop('imageHeight')
+        json_data['objects'] = json_data.pop('shapes')
+        objs = json_data['objects']
+
+        for obj in objs:
+            obj.pop('flags')
+            obj.pop('group_id')
+            obj.pop('shape_type')
+
+            obj['polygon'] = obj.pop('points')
+            for point in obj['polygon']:
+                point[0] = int(point[0])
+                point[1] = int(point[1])
+
+    with open(output_path, 'w', encoding='utf-8', newline="\n") as f:
+        f.write(json.dumps(json_data, indent=4, sort_keys=True))
 
 
 def generate(path: str, files: list):
@@ -79,6 +160,12 @@ def generate(path: str, files: list):
                      folder_name + '_' + str(index).rjust(6, '0') + '_' + frame_number) + '_leftImg8bit.png'
             )
 
+            json2labelImg(
+                _general_name + 'polygons.json',
+                _general_name + 'labelTrainIds.png',
+                "trainIds"
+            )
+
             json2instanceImg(
                 _general_name + 'polygons.json',
                 _general_name + 'instanceIds.png'
@@ -110,6 +197,12 @@ def generate(path: str, files: list):
                 join(path, str(index) + ".png"),
                 join(dest_path, "leftImg8bit", "val", folder_name,
                      folder_name + '_' + str(index).rjust(6, '0') + '_' + frame_number) + '_leftImg8bit.png'
+            )
+
+            json2labelImg(
+                _general_name + 'polygons.json',
+                _general_name + 'labelTrainIds.png',
+                "trainIds"
             )
 
             json2instanceImg(
@@ -170,3 +263,15 @@ if __name__ == "__main__":
             "format:\n    python dataset_gen.py [root_raw_folder] [train/all ratio] [dataset_output_dir]\
                 \n\t[root_raw_folder] 是各组以数字命名为子文件夹的根文件夹\t[train/all ratio]是训练/全部图片的比例\t[dataset_output_dir]是输出路径")
 
+# TODO 添加一参数位用于手动控制json情况
+
+"""
+Before using you MUST modify labels.py in cityscapesscript in order to create the dataset successfully. 
+You MAY learn how to do that in <https://huat-fsac.eu.org/docs/%E6%97%A0%E4%BA%BA%E7%B3%BB%E7%BB%9F%E9%83%A8/%E6%84%9F%E7%9F%A5%E7%BB%84/dataset-generating/>
+"""
+
+#TODO
+#1. json clean 还未完全处理
+#
+#
+#
