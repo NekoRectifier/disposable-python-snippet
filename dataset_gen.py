@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import shutil
+import argparse
 
 from cityscapesscripts.preparation.json2instanceImg import json2instanceImg
 from cityscapesscripts.preparation.json2labelImg import json2labelImg
@@ -29,7 +30,7 @@ This function renames irregular numeric names due to manully removing unwanted l
 Args:
 folder_path -- receives a path that you designate
 """
-def rename(folder_path):
+def rearrange(folder_path):
     # step 1: traverse all files in the folder
     print(folder_path)
     png_dict = {}
@@ -152,7 +153,7 @@ def generate(path: str, files: list):
                 _json_path,
                 _general_name + 'polygons.json'
             )
-            # json_clean.removeUnwantedKeysTo(_json_path, _general_name + 'polygons.json')
+            
 
             shutil.copy(
                 join(path, str(index) + ".png"),
@@ -230,7 +231,7 @@ def main(path: str, ratio: float, dest):
         # folders name should be numberic and ordered
 
         for dir in dirs:
-            rename(join(root, dir))
+            rearrange(join(root, dir))
             #TODO manully controled
 
         if root == path:
@@ -254,14 +255,22 @@ def main(path: str, ratio: float, dest):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 3:
-        if type(sys.argv[1]) == str and type(sys.argv[2]) == str and type(sys.argv[3]) == str:
-            dest_path = sys.argv[3]
-            main(sys.argv[1], float(sys.argv[2]), sys.argv[3])
-    else:
-        print(
-            "format:\n    python dataset_gen.py [root_raw_folder] [train/all ratio] [dataset_output_dir]\
-                \n\t[root_raw_folder] 是各组以数字命名为子文件夹的根文件夹\t[train/all ratio]是训练/全部图片的比例\t[dataset_output_dir]是输出路径")
+    parser = argparse.ArgumentParser("Gernerate a fully usable cityscapes-like dataset")
+    parser.add_argument("--source", type=str, help="path to raw root folder", required=True)
+    parser.add_argument("-r", "--ratio", type=float, help="ratio of train folders to all folders", required=False, default=0.8)
+    parser.add_argument("-o", "--output", type=str, help="output path", required=False, default="./out")
+    parser.add_argument("--no-json-process", type=bool, help="control whether or not to process json files", default=False, required=False)
+
+    args = parser.parse_args()
+
+    # if len(sys.argv) > 3:
+    #     if type(sys.argv[1]) == str and type(sys.argv[2]) == str and type(sys.argv[3]) == str:
+    #         dest_path = sys.argv[3]
+    #         main(sys.argv[1], float(sys.argv[2]), sys.argv[3])
+    # else:
+    #     print(
+    #         "format:\n    python dataset_gen.py [root_raw_folder] [train/all ratio] [dataset_output_dir]\
+    #             \n\t[root_raw_folder] 是各组以数字命名为子文件夹的根文件夹\t[train/all ratio]是训练/全部图片的比例\t[dataset_output_dir]是输出路径")
 
 # TODO 添加一参数位用于手动控制json情况
 
