@@ -1,5 +1,4 @@
 import os
-import sys
 import json
 import shutil
 import argparse
@@ -103,40 +102,44 @@ def jsonProcess(json_path, output_path):
     with open(json_path, "r", encoding="utf-8") as file_handle:
         json_data = json.load(file_handle)
 
-        json_data.pop('imageData')
-        json_data.pop('flags')
-        json_data.pop('imagePath')
-        json_data.pop('version')
+        try:
+            json_data.pop('imageData')
+            json_data.pop('flags')
+            json_data.pop('imagePath')
+            json_data.pop('version')
 
-        json_data['imgWidth'] = json_data.pop('imageWidth')
-        json_data['imgHeight'] = json_data.pop('imageHeight')
-        json_data['objects'] = json_data.pop('shapes')
-        objs = json_data['objects']
+            json_data['imgWidth'] = json_data.pop('imageWidth')
+            json_data['imgHeight'] = json_data.pop('imageHeight')
+            json_data['objects'] = json_data.pop('shapes')
+            objs = json_data['objects']
 
-        for obj in objs:
-            obj.pop('flags')
-            obj.pop('group_id')
-            obj.pop('shape_type')
+            for obj in objs:
+                obj.pop('flags')
+                obj.pop('group_id')
+                obj.pop('shape_type')
 
-            obj['polygon'] = obj.pop('points')
-            for point in obj['polygon']:
-                point[0] = int(point[0])
-                point[1] = int(point[1])
+                obj['polygon'] = obj.pop('points')
+                for point in obj['polygon']:
+                    point[0] = int(point[0])
+                    point[1] = int(point[1])
+        except KeyError as e:
+            # key doesn't exist
+            print("Key '%s' doesn't exist in %s, skipping...", e, json_path)
 
     with open(output_path, 'w', encoding='utf-8', newline="\n") as f:
         f.write(json.dumps(json_data, indent=4, sort_keys=True))
 
 
-def generate(path: str, files: list):
+def generate(path: str, files: list, processed: bool):
     print("Generating sub dataset from folder '%s'" % path)
 
+    # original folder naming number
     if str(path[path.rfind('\\') + 1:]).isdigit():
         index = int(path[path.rfind('\\') + 1:])
         # Windows
     else:
         index = int(path[path.rfind('/') + 1:])
         # Linux
-    # original folder naming number
 
     if index < train_group:
         print("designated to train")
@@ -149,10 +152,16 @@ def generate(path: str, files: list):
                                  folder_name, folder_name + '_' +
                                  str(index).rjust(6, '0') + '_' + frame_number) + "_gtFine_"
 
-            shutil.copy(
-                _json_path,
-                _general_name + 'polygons.json'
-            )
+            if processed:
+                shutil.copy(
+                    _json_path,
+                    _general_name + 'polygons.json'
+                )
+            else:
+                jsonProcess(
+                    _json_path,
+                    _general_name + 'polygons.json'
+                )
             
 
             shutil.copy(
@@ -187,12 +196,16 @@ def generate(path: str, files: list):
                                 folder_name, folder_name + '_' + 
                                 str(index).rjust(6, '0') + '_' + frame_number) + "_gtFine_"
 
-            shutil.copy(
-                _json_path,
-                _general_name + 'polygons.json'
-            )
-            
-            # json_clean.removeUnwantedKeysTo(_json_path, _general_name + 'polygons.json')
+            if processed:
+                shutil.copy(
+                    _json_path,
+                    _general_name + 'polygons.json'
+                )
+            else:
+                jsonProcess(
+                    _json_path,
+                    _general_name + 'polygons.json'
+                )
 
             shutil.copy(
                 join(path, str(index) + ".png"),
@@ -217,7 +230,7 @@ def generate(path: str, files: list):
             )
 
 
-def main(path: str, ratio: float, dest):
+def main(path: str, ratio: float, dest, processed: bool):
     global train_group, val_group
 
     if os.path.exists(dest):
@@ -251,26 +264,19 @@ def main(path: str, ratio: float, dest):
                 # photos are randomized before labeling so there's no need for another randomize
         else:
             # sub-folder cycle
-            generate(root, files)
+            generate(root, files, processed)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Gernerate a fully usable cityscapes-like dataset")
-    parser.add_argument("--source", type=str, help="path to raw root folder", required=True)
+    parser.add_argument("-s", "--source", type=str, help="path to raw root folder", required=True)
     parser.add_argument("-r", "--ratio", type=float, help="ratio of train folders to all folders", required=False, default=0.8)
     parser.add_argument("-o", "--output", type=str, help="output path", required=False, default="./out")
-    parser.add_argument("--no-json-process", type=bool, help="control whether or not to process json files", default=False, required=False)
+    parser.add_argument("--no-json-process", help="control whether or not to process json files", default=False, required=False, action="store_true")
 
     args = parser.parse_args()
 
-    # if len(sys.argv) > 3:
-    #     if type(sys.argv[1]) == str and type(sys.argv[2]) == str and type(sys.argv[3]) == str:
-    #         dest_path = sys.argv[3]
-    #         main(sys.argv[1], float(sys.argv[2]), sys.argv[3])
-    # else:
-    #     print(
-    #         "format:\n    python dataset_gen.py [root_raw_folder] [train/all ratio] [dataset_output_dir]\
-    #             \n\t[root_raw_folder] 是各组以数字命名为子文件夹的根文件夹\t[train/all ratio]是训练/全部图片的比例\t[dataset_output_dir]是输出路径")
+    main(args.source, args.ratio, args.output, args.no_json_process)
 
 # TODO 添加一参数位用于手动控制json情况
 
