@@ -278,15 +278,7 @@ if __name__ == "__main__":
 
     main(args.source, args.ratio, args.output, args.no_json_process)
 
-# TODO 添加一参数位用于手动控制json情况
-
 """
 Before using you MUST modify labels.py in cityscapesscript in order to create the dataset successfully. 
 You MAY learn how to do that in <https://huat-fsac.eu.org/docs/%E6%97%A0%E4%BA%BA%E7%B3%BB%E7%BB%9F%E9%83%A8/%E6%84%9F%E7%9F%A5%E7%BB%84/dataset-generating/>
 """
-
-#TODO
-#1. json clean 还未完全处理
-#
-#
-#
