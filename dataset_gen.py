@@ -10,13 +10,13 @@ join = os.path.join
 city_distribution = ['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot', 'golf', 'hotel', 'india',
                      'juliett', 'kilo', 'lima', 'mike', 'november', 'oscar', 'papa', 'quebec', 'romeo',
                      'sierra', 'tango', 'uniform', 'victor', 'whiskey', 'xray', 'yankee', 'zulu']
-# train folder names goes from start and val foolder names goes backwards
+# train folder names goes from start and val folder names goes backwards
 
 # GLOBALS
 
 train_group = 0
 val_group = 0
-dest_path = ""
+destination_path = ""
 
 json_switch = 0
 frame_number = "000016"
@@ -24,11 +24,13 @@ frame_number = "000016"
 data = {}
 
 """ 
-This function renames irregular numeric names due to manully removing unwanted labeling jsons and images into regular form.
+This function renames irregular numeric names due to manually removing unwanted labeling jsons and images into regular form.
 
 Args:
 folder_path -- receives a path that you designate
 """
+
+
 def rearrange(folder_path):
     # step 1: traverse all files in the folder
     print(folder_path)
@@ -71,7 +73,8 @@ train -- numbers of folders that included in "train" group
 val -- numbers of folders that included in "val" group
 """
 
-def structureCreate(dest_path: str, train: int, val: int):
+
+def structure_create(dest_path: str, train: int, val: int):
     # build basic cityscape like folder structure 
     for _path in [join(dest_path, "gtFine"), join(dest_path, "leftImg8bit")]:
         os.mkdir(_path)
@@ -90,6 +93,7 @@ def structureCreate(dest_path: str, train: int, val: int):
         os.mkdir(join(dest_path, "gtFine", "val", _val))
         os.mkdir(join(dest_path, "leftImg8bit", "val", _val))
 
+
 """
 Check json keys one by one then modify and finally save it to designated path.
 
@@ -97,7 +101,9 @@ Args:
 json_path -- path to original json file
 output_path -- path to 
 """
-def jsonProcess(json_path, output_path):
+
+
+def json_process(json_path, output_path):
     print("Handling %s")
     with open(json_path, "r", encoding="utf-8") as file_handle:
         json_data = json.load(file_handle)
@@ -146,9 +152,9 @@ def generate(path: str, files: list, processed: bool):
 
         folder_name = city_distribution[index]
 
-        for index in range(0, int(len(files)/2)):
+        for index in range(0, int(len(files) / 2)):
             _json_path = join(path, str(index) + ".json")
-            _general_name = join(dest_path, "gtFine", "train",
+            _general_name = join(destination_path, "gtFine", "train",
                                  folder_name, folder_name + '_' +
                                  str(index).rjust(6, '0') + '_' + frame_number) + "_gtFine_"
 
@@ -158,15 +164,14 @@ def generate(path: str, files: list, processed: bool):
                     _general_name + 'polygons.json'
                 )
             else:
-                jsonProcess(
+                json_process(
                     _json_path,
                     _general_name + 'polygons.json'
                 )
-            
 
             shutil.copy(
                 join(path, str(index) + ".png"),
-                join(dest_path, "leftImg8bit", "train", folder_name,
+                join(destination_path, "leftImg8bit", "train", folder_name,
                      folder_name + '_' + str(index).rjust(6, '0') + '_' + frame_number) + '_leftImg8bit.png'
             )
 
@@ -188,13 +193,13 @@ def generate(path: str, files: list, processed: bool):
     else:
         print("designated to val")
 
-        folder_name = city_distribution[-(index-train_group + 1)]
+        folder_name = city_distribution[-(index - train_group + 1)]
 
-        for index in range(0, int(len(files)/2)):
+        for index in range(0, int(len(files) / 2)):
             _json_path = join(path, str(index) + ".json")
-            _general_name = join(dest_path, "gtFine", "val",
-                                folder_name, folder_name + '_' + 
-                                str(index).rjust(6, '0') + '_' + frame_number) + "_gtFine_"
+            _general_name = join(destination_path, "gtFine", "val",
+                                 folder_name, folder_name + '_' +
+                                 str(index).rjust(6, '0') + '_' + frame_number) + "_gtFine_"
 
             if processed:
                 shutil.copy(
@@ -202,14 +207,14 @@ def generate(path: str, files: list, processed: bool):
                     _general_name + 'polygons.json'
                 )
             else:
-                jsonProcess(
+                json_process(
                     _json_path,
                     _general_name + 'polygons.json'
                 )
 
             shutil.copy(
                 join(path, str(index) + ".png"),
-                join(dest_path, "leftImg8bit", "val", folder_name,
+                join(destination_path, "leftImg8bit", "val", folder_name,
                      folder_name + '_' + str(index).rjust(6, '0') + '_' + frame_number) + '_leftImg8bit.png'
             )
 
@@ -235,17 +240,17 @@ def main(path: str, ratio: float, dest, processed: bool):
 
     if os.path.exists(dest):
         shutil.rmtree(dest)
-    # remove provious gernerated datasets
+    # remove previous generated datasets
 
     if not os.path.exists(dest):
         os.mkdir(dest)
-    
+
     for root, dirs, files in os.walk(path, topdown=True):
-        # folders name should be numberic and ordered
+        # folders name should be numeric and ordered
 
         for dir in dirs:
             rearrange(join(root, dir))
-            #TODO manully controled
+            # TODO manully controled
 
         if root == path:
             # print(len(dirs) - 1)
@@ -259,8 +264,8 @@ def main(path: str, ratio: float, dest, processed: bool):
                 print("%d grouping folders detected" % (len(dirs)))
                 print(">> %d grouping for train;\n>> %d grouping for validate" % (train_group, val_group))
 
-                structureCreate(dest, train_group, val_group)
-                
+                structure_create(dest, train_group, val_group)
+
                 # photos are randomized before labeling so there's no need for another randomize
         else:
             # sub-folder cycle
@@ -270,9 +275,11 @@ def main(path: str, ratio: float, dest, processed: bool):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Gernerate a fully usable cityscapes-like dataset")
     parser.add_argument("-s", "--source", type=str, help="path to raw root folder", required=True)
-    parser.add_argument("-r", "--ratio", type=float, help="ratio of train folders to all folders", required=False, default=0.8)
+    parser.add_argument("-r", "--ratio", type=float, help="ratio of train folders to all folders", required=False,
+                        default=0.8)
     parser.add_argument("-o", "--output", type=str, help="output path", required=False, default="./out")
-    parser.add_argument("--no-json-process", help="control whether or not to process json files", default=False, required=False, action="store_true")
+    parser.add_argument("--no-json-process", help="control whether or not to process json files", default=False,
+                        required=False, action="store_true")
 
     args = parser.parse_args()
 
